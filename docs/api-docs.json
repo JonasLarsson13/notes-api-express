@@ -1,0 +1,542 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+      "title": "Notes API Docs",
+      "version": "1.0"
+    },
+    "servers": [{ "url": "http://localhost:5505/api" }],
+    "tags": [
+      {
+        "name": "User"
+      },
+      {
+        "name": "Notes"
+      }
+    ],
+    "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "in": "header",
+          "name": "Authorization",
+          "description": "Bearer token to access these api endpoints",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "schemas": {
+        "Response-success": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "Response-failure": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "boolean",
+              "default": false
+            },
+            "message": {
+              "type": "string"
+            }
+          }
+        },
+        "Token-expired": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "boolean",
+              "default": false
+            },
+            "message": {
+              "type": "string",
+              "default": "Token expired"
+            }
+          }
+        }
+      }
+    },
+    "paths": {
+      "/user/login": {
+        "post": {
+          "tags": ["User"],
+          "summary": "Login user by username and password",
+          "responses": {
+            "200": {
+              "description": "User logged in successfully, return token valid for one hour",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean"
+                      },
+                      "token": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad request",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Response-failure"
+                  }
+                }
+              }
+            },
+  
+            "404": {
+              "description": "User not found / Wrong password",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Response-failure"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error"
+            }
+          },
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": {
+                      "type": "string",
+                      "default": "jonas"
+                    },
+                    "password": {
+                      "type": "string",
+                      "default": "awdawd123"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/user/signup": {
+        "post": {
+          "tags": ["User"],
+          "summary": "Register user by username and password",
+          "responses": {
+            "200": {
+              "description": "Registered successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Response-success"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad request",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Response-failure"
+                  }
+                }
+              }
+            },
+  
+            "409": {
+              "description": "Username already exists",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Response-failure"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error"
+            }
+          },
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": {
+                      "type": "string",
+                      "default": "jonas1"
+                    },
+                    "password": {
+                      "type": "string",
+                      "default": "awdawd123"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/notes": {
+        "get": {
+          "description": "Retrieves history for a user based on this user's token sent in the header.",
+          "tags": ["Notes"],
+          "summary": "Get all notes",
+          "responses": {
+            "200": {
+              "description": "Success",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "default": true
+                      },
+                      "data": {
+                        "type": "array",
+                        "default": [
+                          {
+                            "_id": "644b7165e13e4eab4752f5f4",
+                            "title": "Note title 1",
+                            "text": "Note text 1",
+                            "modifiedAt": null,
+                            "createdAt": "2023-04-28 09:10:29"
+                          },
+                          {
+                            "_id": "644b71f4e13e4eab4752f600",
+                            "title": "Note title 2",
+                            "text": "Note text 2",
+                            "modifiedAt": "2023-04-28 09:14:16",
+                            "createdAt": "2023-04-28 09:12:52"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad request/Token expired",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Response-failure"
+                  }
+                }
+              }
+            },
+            "500": {
+                "description": "Internal server error"
+              }
+          },
+          "bearerAuth": {
+            "type": "http",
+            "scheme": "bearer"
+          }
+        },
+        "post": {
+          "description": "Save note for a user based on user's token sent in the header.",
+            "tags": ["Notes"],
+            "summary": "Save note",
+            "responses": {
+              "200": {
+                "description": "Success",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "data": {
+                          "type": "object",
+                          "default": {
+                            "_id": "644b7f059a9963c4ec2209ea",
+                            "title": "Note title",
+                            "text": "Note text",
+                            "createdAt": "2023-04-28 10:08:37"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request/Token expired",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Response-failure"
+                    }
+                  }
+                }
+              },
+              "500": {
+                  "description": "Internal server error"
+                }
+            },
+            "bearerAuth": {
+              "type": "http",
+              "scheme": "bearer"
+            },
+            "requestBody": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string",
+                        "default": "Note title"
+                      },
+                      "text": {
+                        "type": "string",
+                        "default": "Note text"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "put": {
+            "description": "Edit note for a user based on user's token sent in the header.",
+              "tags": ["Notes"],
+              "summary": "Edit note",
+              "parameters": [
+                {
+                  "name": "noteId",
+                  "in": "path",
+                  "description": "Note id",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "default": "644b7f059a9963c4ec2209ea"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Success",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "success": {
+                            "type": "boolean",
+                            "default": true
+                          },
+                          "data": {
+                            "type": "object",
+                            "default": {
+                              "_id": "644b7f059a9963c4ec2209ea",
+                              "title": "Note title",
+                              "text": "Note text",
+                              "createdAt": "2023-04-28 10:08:37"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Bad request/Token expired",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Response-failure"
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Note not found",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Response-failure"
+                      }
+                    }
+                  }
+                },
+                "500": {
+                    "description": "Internal server error"
+                  }
+              },
+              "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer"
+              },
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "type": "string",
+                          "default": "Note title"
+                        },
+                        "text": {
+                          "type": "string",
+                          "default": "Note text"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "delete": {
+              "description": "Delete note for a user based on user's token sent in the header.",
+                "tags": ["Notes"],
+                "summary": "Delete note",
+                "parameters": [
+                  {
+                    "name": "noteId",
+                    "in": "path",
+                    "description": "Note id",
+                    "required": true,
+                    "schema": {
+                      "type": "string",
+                      "default": "644b7f059a9963c4ec2209ea"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Registered successfully",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/Response-success"
+                        }
+                      }
+                    }
+                  },
+                  "400": {
+                    "description": "Unauthorized/Token expired",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/Response-failure"
+                        }
+                      }
+                    }
+                  },
+                  "404": {
+                    "description": "Note not found",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/Response-failure"
+                        }
+                      }
+                    }
+                  },
+                  "500": {
+                    "description": "Internal server error"
+                  }
+                }
+        }
+      },
+      "/notes/search": {
+        "get": {
+          "description": "Search for notes for a user based on user's token sent in the header.",
+          "tags": ["Notes"],
+          "summary": "Search for notes",
+          "parameters": [
+            {
+              "name": "search",
+              "in": "query",
+              "description": "search query",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "default": "title"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Success",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "default": true
+                      },
+                      "data": {
+                        "type": "array",
+                        "default": [
+                          {
+                            "_id": "644b7165e13e4eab4752f5f4",
+                            "title": "Note title 1",
+                            "text": "Note text 1",
+                            "modifiedAt": null,
+                            "createdAt": "2023-04-28 09:10:29"
+                          },
+                          {
+                            "_id": "644b71f4e13e4eab4752f600",
+                            "title": "Note title 2",
+                            "text": "Note text 2",
+                            "modifiedAt": "2023-04-28 09:14:16",
+                            "createdAt": "2023-04-28 09:12:52"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad request/Token expired",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Response-failure"
+                  }
+                }
+              }
+            },
+            "500": {
+                "description": "Internal server error"
+              }
+          }
+        }
+      }
+    }
+  }
+  
